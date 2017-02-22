@@ -57,7 +57,7 @@ namespace Mongo.Context.Tests
             public Result results { get; set; }
         }
 
-        private MongoDatabase _database;
+        private IMongoDatabase _database;
 
         protected override void PopulateTestData()
         {

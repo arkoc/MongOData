@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MongoDB.Bson;
-using MongoDB.Driver.Builders;
+using MongoDB.Driver;
 using DataServiceProvider;
 
 namespace Mongo.Context
@@ -101,9 +101,9 @@ namespace Mongo.Context
 
         private void InsertDocument(MongoContext mongoContext, ResourceChange change)
         {
-            var collection = mongoContext.Database.GetCollection(change.CollectionName);
+            var collection = mongoContext.Database.GetCollection<BsonDocument>(change.CollectionName);
             var document = MongoDSPConverter.CreateBSonDocument(change.Resource, this.mongoMetadata, change.CollectionName);
-            collection.Insert(document);
+            collection.InsertOne(document);
             change.Resource.SetValue(MongoMetadata.MappedObjectIdName, document.GetValue(MongoMetadata.ProviderObjectIdName).ToString());
         }
 
@@ -112,18 +112,19 @@ namespace Mongo.Context
             if (!change.ModifiedProperties.Any())
                 return;
 
-            var collection = mongoContext.Database.GetCollection(change.CollectionName);
-            var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(change.Resource.GetValue(MongoMetadata.MappedObjectIdName).ToString()));
-            UpdateBuilder update = null;
+            var collection = mongoContext.Database.GetCollection<BsonDocument>(change.CollectionName);
+            var query = Builders<BsonDocument>.Filter.Eq(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(change.Resource.GetValue(MongoMetadata.MappedObjectIdName).ToString()));
+
+            UpdateDefinition<BsonDocument> update = null;
 
             foreach (var resourceProperty in change.ModifiedProperties)
             {
                 if (update == null)
                 {
                     if (resourceProperty.Value != null)
-                        update = Update.Set(resourceProperty.Key, BsonValue.Create(resourceProperty.Value));
+                        update = Builders<BsonDocument>.Update.Set(resourceProperty.Key, BsonValue.Create(resourceProperty.Value));
                     else
-                        update = Update.Unset(resourceProperty.Key);
+                        update = Builders<BsonDocument>.Update.Unset(resourceProperty.Key);
                 }
                 else
                 {
@@ -134,14 +135,14 @@ namespace Mongo.Context
                 }
             }
 
-            collection.Update(query, update);
+            collection.UpdateOne(query, update);
         }
 
         private void RemoveDocument(MongoContext mongoContext, ResourceChange change)
         {
-            var collection = mongoContext.Database.GetCollection(change.CollectionName);
-            var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(change.Resource.GetValue(MongoMetadata.MappedObjectIdName).ToString()));
-            collection.Remove(query);
+            var collection = mongoContext.Database.GetCollection<BsonDocument>(change.CollectionName);
+            var query = Builders<BsonDocument>.Filter.Eq(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(change.Resource.GetValue(MongoMetadata.MappedObjectIdName).ToString()));
+            collection.DeleteOne(query);
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
-using MongoDB.Driver.Builders;
+using MongoDB.Driver;
 
 namespace Mongo.Context
 {
@@ -112,7 +112,19 @@ namespace Mongo.Context
 
         private IEnumerable<string> GetCollectionNames(MongoContext context)
         {
-            return context.Database.GetCollectionNames().Where(x => !x.StartsWith("system."));
+            var collectionNames = new List<string>(0);
+            using (var cursor = context.Database.ListCollectionsAsync().Result)
+            {
+                cursor.ForEachAsync(collectionDocument =>
+                {
+                    var name = collectionDocument["name"].AsString;
+                    if(name.StartsWith("system.") == false)
+                    {
+                        collectionNames.Add(collectionDocument["name"].AsString);
+                    }
+                }).Wait();
+            }
+            return collectionNames;
         }
 
         private void PopulateMetadata(MongoContext context)
@@ -149,13 +161,13 @@ namespace Mongo.Context
 
         private void PopulateMetadataFromCollection(MongoContext context, string collectionName, ResourceSet resourceSet)
         {
-            var collection = context.Database.GetCollection(collectionName);
+            var collection = context.Database.GetCollection<BsonDocument>(collectionName);
             const string naturalSort = "$natural";
             var sortOrder = this.Configuration.FetchPosition == MongoConfiguration.FetchPosition.End
-                                ? SortBy.Descending(naturalSort)
-                                : SortBy.Ascending(naturalSort);
-            var documents = collection.FindAll().SetSortOrder(sortOrder);
-
+                                ? Builders<BsonDocument>.Sort.Descending(naturalSort)
+                                : Builders<BsonDocument>.Sort.Ascending(naturalSort);
+            var filter = new BsonDocument();
+            var documents = collection.Find(filter).Sort(sortOrder).ToList();
             int rowCount = 0;
             foreach (var document in documents)
             {

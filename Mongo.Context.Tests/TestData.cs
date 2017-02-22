@@ -36,11 +36,11 @@ namespace Mongo.Context.Tests
                                               Products = null,
                                           };
 
-            categories.Insert(categoryFood);
-            categories.Insert(categoryBeverages);
-            categories.Insert(categoryElectronics);
+            categories.InsertOne(categoryFood);
+            categories.InsertOne(categoryBeverages);
+            categories.InsertOne(categoryElectronics);
 
-            products.Insert(
+            products.InsertOne(
                 new ClientProduct
                     {
                         ID = 1,
@@ -65,7 +65,7 @@ namespace Mongo.Context.Tests
                             },
                         Category = categoryFood,
                     });
-            products.Insert(
+            products.InsertOne(
                 new ClientProduct
                     {
                         ID = 2,
@@ -89,7 +89,7 @@ namespace Mongo.Context.Tests
                             },
                         Category = categoryBeverages,
                     });
-            products.Insert(
+            products.InsertOne(
                 new ClientProduct
                     {
                         ID = 3,
@@ -112,7 +112,7 @@ namespace Mongo.Context.Tests
             var database = GetDatabase(clearDatabase);
 
             var clrTypes = database.GetCollection<ClrType>("ClrTypes");
-            clrTypes.Insert(
+            clrTypes.InsertOne(
                 new ClrType
                 {
                     BinaryValue = new[] { (byte)1 },
@@ -155,10 +155,10 @@ namespace Mongo.Context.Tests
         {
             var database = GetDatabase(clearDatabase);
 
-            var variableTypes = database.GetCollection("VariableTypes");
-            variableTypes.Insert(new TypeWithOneField { StringValue = "1" }.ToBsonDocument());
-            variableTypes.Insert(new TypeWithTwoFields { StringValue = "2", IntValue = 2 }.ToBsonDocument());
-            variableTypes.Insert(new TypeWithThreeFields { StringValue = "3", IntValue = 3, DecimalValue = 3m }.ToBsonDocument());
+            var variableTypes = database.GetCollection<BsonDocument>("VariableTypes");
+            variableTypes.InsertOne(new TypeWithOneField { StringValue = "1" }.ToBsonDocument());
+            variableTypes.InsertOne(new TypeWithTwoFields { StringValue = "2", IntValue = 2 }.ToBsonDocument());
+            variableTypes.InsertOne(new TypeWithThreeFields { StringValue = "3", IntValue = 3, DecimalValue = 3m }.ToBsonDocument());
         }
 
         public static void PopulateWithBsonIdTypes(bool clearDatabase = true)
@@ -166,29 +166,29 @@ namespace Mongo.Context.Tests
             var database = GetDatabase(clearDatabase);
 
             var typesWithoutExplicitId = database.GetCollection<TypeWithoutExplicitId>("TypeWithoutExplicitId");
-            typesWithoutExplicitId.Insert(new TypeWithoutExplicitId { Name = "A" }.ToBsonDocument());
-            typesWithoutExplicitId.Insert(new TypeWithoutExplicitId { Name = "B" }.ToBsonDocument());
-            typesWithoutExplicitId.Insert(new TypeWithoutExplicitId { Name = "C" }.ToBsonDocument());
+            typesWithoutExplicitId.InsertOne(new TypeWithoutExplicitId { Name = "A" });
+            typesWithoutExplicitId.InsertOne(new TypeWithoutExplicitId { Name = "B" });
+            typesWithoutExplicitId.InsertOne(new TypeWithoutExplicitId { Name = "C" });
 
             var typeWithBsonId = database.GetCollection<TypeWithBsonId>("TypeWithBsonId");
-            typeWithBsonId.Insert(new TypeWithBsonId { Id = ObjectId.GenerateNewId(), Name = "A" }.ToBsonDocument());
-            typeWithBsonId.Insert(new TypeWithBsonId { Id = ObjectId.GenerateNewId(), Name = "B" }.ToBsonDocument());
-            typeWithBsonId.Insert(new TypeWithBsonId { Id = ObjectId.GenerateNewId(), Name = "C" }.ToBsonDocument());
+            typeWithBsonId.InsertOne(new TypeWithBsonId { Id = ObjectId.GenerateNewId(), Name = "A" });
+            typeWithBsonId.InsertOne(new TypeWithBsonId { Id = ObjectId.GenerateNewId(), Name = "B" });
+            typeWithBsonId.InsertOne(new TypeWithBsonId { Id = ObjectId.GenerateNewId(), Name = "C" });
 
             var typeWithIntId = database.GetCollection<TypeWithIntId>("TypeWithIntId");
-            typeWithIntId.Insert(new TypeWithIntId { Id = 1, Name = "A" }.ToBsonDocument());
-            typeWithIntId.Insert(new TypeWithIntId { Id = 2, Name = "B" }.ToBsonDocument());
-            typeWithIntId.Insert(new TypeWithIntId { Id = 3, Name = "C" }.ToBsonDocument());
+            typeWithIntId.InsertOne(new TypeWithIntId { Id = 1, Name = "A" });
+            typeWithIntId.InsertOne(new TypeWithIntId { Id = 2, Name = "B" });
+            typeWithIntId.InsertOne(new TypeWithIntId { Id = 3, Name = "C" });
 
             var typeWithStringId = database.GetCollection<TypeWithStringId>("TypeWithStringId");
-            typeWithStringId.Insert(new TypeWithStringId { Id = "1", Name = "A" }.ToBsonDocument());
-            typeWithStringId.Insert(new TypeWithStringId { Id = "2", Name = "B" }.ToBsonDocument());
-            typeWithStringId.Insert(new TypeWithStringId { Id = "3", Name = "C" }.ToBsonDocument());
+            typeWithStringId.InsertOne(new TypeWithStringId { Id = "1", Name = "A" });
+            typeWithStringId.InsertOne(new TypeWithStringId { Id = "2", Name = "B" });
+            typeWithStringId.InsertOne(new TypeWithStringId { Id = "3", Name = "C" });
 
             var typeWithGuidId = database.GetCollection<TypeWithGuidId>("TypeWithGuidId");
-            typeWithGuidId.Insert(new TypeWithGuidId { Id = Guid.NewGuid(), Name = "A" }.ToBsonDocument());
-            typeWithGuidId.Insert(new TypeWithGuidId { Id = Guid.NewGuid(), Name = "B" }.ToBsonDocument());
-            typeWithGuidId.Insert(new TypeWithGuidId { Id = Guid.NewGuid(), Name = "C" }.ToBsonDocument());
+            typeWithGuidId.InsertOne(new TypeWithGuidId { Id = Guid.NewGuid(), Name = "A" });
+            typeWithGuidId.InsertOne(new TypeWithGuidId { Id = Guid.NewGuid(), Name = "B" });
+            typeWithGuidId.InsertOne(new TypeWithGuidId { Id = Guid.NewGuid(), Name = "C" });
         }
 
         public static void PopulateWithJsonSamples(bool clearDatabase = true)
@@ -220,8 +220,8 @@ namespace Mongo.Context.Tests
                 foreach (var json in jsonCollection)
                 {
                     var doc = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(json);
-                    var collection = database.GetCollection(collectionName);
-                    collection.Insert(doc);
+                    var collection = database.GetCollection<BsonDocument>(collectionName);
+                    collection.InsertOne(doc);
                 }
             }
         }
@@ -229,29 +229,28 @@ namespace Mongo.Context.Tests
         public static void Clean()
         {
             var connectionString = ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString;
-            var server = new MongoClient(connectionString).GetServer();
-
-            server.DropDatabase(GetDatabaseName(connectionString));
+            var client = new MongoClient(connectionString);
+            client.DropDatabase(GetDatabaseName(connectionString));
         }
 
-        public static MongoDatabase CreateDatabase()
+        public static IMongoDatabase CreateDatabase()
         {
             return GetDatabase(true);
         }
 
-        public static MongoDatabase OpenDatabase()
+        public static IMongoDatabase OpenDatabase()
         {
             return GetDatabase(false);
         }
 
-        private static MongoDatabase GetDatabase(bool clear)
+        private static IMongoDatabase GetDatabase(bool clear)
         {
             var connectionString = ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString;
             var databaseName = GetDatabaseName(connectionString);
-            var server = new MongoClient(connectionString).GetServer();
+            var client = new MongoClient(connectionString);
             if (clear)
-                server.DropDatabase(databaseName);
-            return server.GetDatabase(databaseName);
+                client.DropDatabase(databaseName);
+            return client.GetDatabase(databaseName);
         }
 
         private static string GetDatabaseName(string connectionString)

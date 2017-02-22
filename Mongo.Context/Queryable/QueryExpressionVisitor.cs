@@ -18,13 +18,9 @@ namespace Mongo.Context.Queryable
         private Type collectionType;
         private MongoMetadata mongoMetadata;
 
-        public QueryExpressionVisitor(MongoCollection mongoCollection, MongoMetadata mongoMetadata, Type queryDocumentType)
+        public QueryExpressionVisitor(IQueryable queryableCollection, MongoMetadata mongoMetadata, Type queryDocumentType)
         {
-            var genericMethod = typeof(LinqExtensionMethods).GetMethods()
-                .Where(x => x.Name == "AsQueryable" && x.GetParameters().Single().ParameterType.IsGenericType)
-                .Single();
-            var method = genericMethod.MakeGenericMethod(queryDocumentType);
-            this.queryableCollection = method.Invoke(null, new object[] { mongoCollection }) as IQueryable;
+            this.queryableCollection = queryableCollection;
             this.collectionType = queryDocumentType;
             this.mongoMetadata = mongoMetadata;
         }

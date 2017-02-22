@@ -3,39 +3,42 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MongoDB.Driver;
+using System.Threading.Tasks;
 
 namespace Mongo.Context
 {
     public partial class MongoContext : IDisposable
     {
         protected string connectionString;
-        protected MongoClient client;
-        protected MongoServer server;
-        protected MongoDatabase database;
+        protected IMongoClient client;
+        protected IMongoDatabase database;
 
         public MongoContext(string connectionString)
         {
             this.connectionString = connectionString;
             string databaseName = GetDatabaseName(this.connectionString);
-
             this.client = new MongoClient(this.connectionString);
-            this.server = this.client.GetServer();
-            this.database = server.GetDatabase(databaseName);
+            this.database = client.GetDatabase(databaseName);
         }
 
-        public MongoDatabase Database
+        public IMongoDatabase Database
         {
             get { return this.database; }
         }
 
         public static IEnumerable<string> GetDatabaseNames(string connectionString)
         {
-            return new MongoClient(connectionString).GetServer().GetDatabaseNames();
+            var databaseNames = new List<string>(0);
+            using (var cursor = new MongoClient(connectionString).ListDatabasesAsync().Result)
+            {
+               cursor.ForEachAsync(dbDocument => databaseNames.Add(dbDocument["name"].AsString)).Wait();
+            }
+            return databaseNames;
         }
 
         public void Dispose()
         {
-            this.database.Server.Disconnect();
+            
         }
 
         public void SaveChanges()

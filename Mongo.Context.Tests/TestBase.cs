@@ -17,14 +17,14 @@ namespace Mongo.Context.Tests
 
         protected abstract void PopulateTestData();
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void TestFixtureSetUp()
         {
             PopulateTestData();
             service = new TestService(typeof(T));
         }
 
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void TestFixtureTearDown()
         {
             if (service != null)
